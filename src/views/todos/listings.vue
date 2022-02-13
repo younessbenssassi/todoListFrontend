@@ -61,7 +61,7 @@
             <div class="todo-list">
               <div class="todo-item" v-for="todo in todos" :key="todo.id">
                 <div class="row">
-                  <div class="col-md-3">
+                  <div class="col-md-1">
                     <span class="">
                         <input
                             type="checkbox"
@@ -70,14 +70,49 @@
                         >
                       </span>
                   </div>
-                  <div class="col-md-6">
-                    <div :class="{'done':todo.status}">
-                      <h3>{{ todo.title }}</h3>
-                      <span v-for="user in todo.users" :key="'user'+user.id">( {{ user.name }} )</span>
-                      <span v-for="admin in todo.admins" :key="'admin'+admin.id">( {{ admin.name }} )</span>
+                  <div class="col-md-9">
+                    <div :class="{'done':todo.status}" class="row">
+                      <div class="col-md-6">
+                        <h3>{{ todo.title }}</h3>
+                      </div>
+                      <div class="col-md-3">
+                        <el-select
+                            v-model="todo.users_ids"
+                            placeholder="Select users"
+                            @change="createEditTodo(todo)"
+                            :disabled="todo.status"
+                            multiple
+                        >
+                          <el-option
+                              v-for="user in users"
+                              :key="'userSelector'+user.id"
+                              :value="user.id"
+                              :label="user.name"
+                          >
+                          </el-option>
+                        </el-select>
+                      </div>
+                      <div class="col-md-3">
+                        <el-select
+                            v-model="todo.admins_ids"
+                            placeholder="Select admins"
+                            @change="createEditTodo(todo)"
+                            :disabled="todo.status"
+                            multiple
+                        >
+                          <el-option
+                              v-for="user in admins"
+                              :key="'adminSelector'+user.id"
+                              :value="user.id"
+                              :label="user.name"
+                          >
+                          </el-option>
+                        </el-select>
+                      </div>
+
                     </div>
                   </div>
-                  <div class="col-md-3">
+                  <div class="col-md-2">
                     <a
                         @click.prevent="deleteTodo(todo)"
                         href="javascript:void(0);"
@@ -85,40 +120,11 @@
                     >
                         Delete
                     </a>
-                    <a
-                        @click.prevent="openEditTodo(todo)"
-                        href="javascript:void(0);"
-                        class="float-left error"
-                    >
-                      Edit
-                    </a>
                   </div>
 
                 </div>
 
               </div>
-              <!--
-              <div class="todo-item">
-                <div class="checker">
-                  <span class=""><input type="checkbox"></span>
-                </div>
-                <span>Work on wordpress</span>
-                <a href="javascript:void(0);" class="float-right remove-todo-item"><i class="icon-close"></i></a>
-              </div>
-
-              <div class="todo-item">
-                <div class="checker">
-                  <span class=""><input type="checkbox"></span>
-                </div>
-                <span>Organize office main department</span>
-                <a href="javascript:void(0);" class="float-right remove-todo-item"><i class="icon-close"></i></a>
-              </div>
-              <div class="todo-item">
-                <div class="checker"><span><input type="checkbox"></span></div>
-                <span>Error solve in HTML template</span>
-                <a href="javascript:void(0);" class="float-right remove-todo-item"><i class="icon-close"></i></a>
-              </div>
-              -->
             </div>
           </div>
         </div>
@@ -191,29 +197,22 @@ export default {
       }
     },
 
-    async createEditTodo(){
-      if(this.type === 'user'){
-        this.todo.users_ids = this.selectedUsers;
-        this.todo.user_type = this.type;
-      }
-      else{
-        this.todo.admins_ids = this.selectedUsers;
-        this.todo.user_type = this.type;
-      }
-      if(this.todo && this.todo.id && this.todo.title && this.todo.title.length > 3){
+    async createEditTodo(todo){
+      if(todo && todo.id){
         let controller = new TodosController();
-        let response = await controller.editTodo(this.todo);
+        let response = await controller.editTodo(todo);
         if(response.status){
           await this.getTodos();
-          this.todo={
-            title:'',
-            admins_ids:[],
-            users_ids:[],
-          };
-          this.selectedUsers = [];
-          this.type = '';
         }
       }else{
+        if(this.type === 'user'){
+          this.todo.users_ids = this.selectedUsers;
+          this.todo.user_type = this.type;
+        }
+        else{
+          this.todo.admins_ids = this.selectedUsers;
+          this.todo.user_type = this.type;
+        }
         let controller = new TodosController();
         let response = await controller.addTodo(this.todo);
         if(response.status){
@@ -224,7 +223,7 @@ export default {
             users_ids:[],
           };
           this.selectedUsers = [];
-          this.type = '';
+          this.type = 'user';
         }
       }
     },
@@ -233,17 +232,6 @@ export default {
       let response = await controller.deleteTodo(todo.id);
       if(response.status){
         await this.getTodos();
-      }
-    },
-    openEditTodo(todo){
-      this.todo = todo;
-      if(todo.user_type === 'user'){
-        this.selectedUsers = this.todo.users_ids;
-        this.type = todo.user_type ;
-      }
-      else{
-        this.selectedUsers = this.todo.admins_ids;
-        this.type = todo.user_type ;
       }
     },
     async toggleStatus(todo){
