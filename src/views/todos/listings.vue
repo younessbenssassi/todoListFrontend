@@ -27,7 +27,7 @@
               <div class="col-md-3">
                 <el-select
                     v-model="selectedUsers"
-                    placeholder="Select admins"
+                    :placeholder="'Select '+type+'s'"
                     multiple
                 >
                   <el-option
@@ -77,6 +77,25 @@
                       </div>
                       <div class="col-md-3">
                         <el-select
+                            :disabled="todo.status"
+                            v-model="todo.type"
+                            placeholder="Select users"
+                        >
+                          <el-option
+                              value="user"
+                              label="User"
+                          >
+                          </el-option>
+                          <el-option
+                              value="admin"
+                              label="Admin"
+                          >
+                          </el-option>
+                        </el-select>
+                      </div>
+                      <div class="col-md-3">
+                        <el-select
+                            v-if="todo.type === 'user'"
                             v-model="todo.users_ids"
                             placeholder="Select users"
                             @change="createEditTodo(todo)"
@@ -85,15 +104,14 @@
                         >
                           <el-option
                               v-for="user in users"
-                              :key="'userSelector'+user.id"
+                              :key="'user'+user.id"
                               :value="user.id"
                               :label="user.name"
                           >
                           </el-option>
                         </el-select>
-                      </div>
-                      <div class="col-md-3">
                         <el-select
+                            v-else
                             v-model="todo.admins_ids"
                             placeholder="Select admins"
                             @change="createEditTodo(todo)"
@@ -102,7 +120,7 @@
                         >
                           <el-option
                               v-for="user in admins"
-                              :key="'adminSelector'+user.id"
+                              :key="'admin'+user.id"
                               :value="user.id"
                               :label="user.name"
                           >
@@ -207,11 +225,11 @@ export default {
       }else{
         if(this.type === 'user'){
           this.todo.users_ids = this.selectedUsers;
-          this.todo.user_type = this.type;
+          this.todo.type = this.type;
         }
         else{
           this.todo.admins_ids = this.selectedUsers;
-          this.todo.user_type = this.type;
+          this.todo.type = this.type;
         }
         let controller = new TodosController();
         let response = await controller.addTodo(this.todo);
